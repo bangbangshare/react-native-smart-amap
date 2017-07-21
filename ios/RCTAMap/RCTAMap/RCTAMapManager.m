@@ -220,6 +220,36 @@ RCT_EXPORT_METHOD(setCenterCoordinate:(nonnull NSNumber *)reactTag centerCoordin
 
 }
 
+//在地图上添加自定义标注
+RCT_EXPORT_METHOD(addAnnotationWithCoordinate:(nonnull NSNumber *)reactTag annotationCoordinate:(nonnull NSDictionary *)coordinate )
+{
+    NSArray *keys = [coordinate allKeys];
+    
+    if(![keys containsObject:@"longitude"]
+       || ![keys containsObject:@"latitude"])
+    {
+        return;
+    }
+    
+    double latitude = [[coordinate objectForKey:@"latitude"] doubleValue];
+    double longitude = [[coordinate objectForKey:@"longitude"] doubleValue];
+    
+    CLLocationCoordinate2D coord = CLLocationCoordinate2DMake(latitude, longitude);
+    
+    MAPointAnnotation *annotation = [[MAPointAnnotation alloc] init];
+    annotation.coordinate = coord;
+    annotation.title    = @"Default";
+    annotation.subtitle = @"DefaultView";
+    
+    dispatch_async(self.bridge.uiManager.methodQueue,^{
+        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+            id view = viewRegistry[reactTag];
+            RCTAMap *mapView = (RCTAMap *)view;
+            [mapView addAnnotation:annotation];
+        }];
+    });
+}
+
 //RCT_EXPORT_METHOD(onDestroyBDMap:(nonnull NSNumber *)reactTag){
 //    dispatch_async(self.bridge.uiManager.methodQueue,^{
 //        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
@@ -422,7 +452,7 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
         annotationView.canShowCallout   = NO;
         annotationView.animatesDrop     = NO;
         annotationView.draggable        = NO;
-        annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
+        annotationView.image            = [UIImage imageNamed:@"hema"];
         
         return annotationView;
     }
